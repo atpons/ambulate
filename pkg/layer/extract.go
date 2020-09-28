@@ -6,7 +6,6 @@ import (
 	"errors"
 	v1 "github.com/google/go-containerregistry/pkg/v1"
 	"io"
-	"io/ioutil"
 	"log"
 	"path"
 )
@@ -26,12 +25,7 @@ func ExtractSingleFile(img v1.Image, fpath string) (*bytes.Buffer, error) {
 		}
 
 		rc, _ := lbd.Uncompressed()
-		rbuf, err := ioutil.ReadAll(rc)
-		if err != nil {
-			return nil, err
-		}
-
-		tarReader := tar.NewReader(bytes.NewReader(rbuf))
+		tarReader := tar.NewReader(rc)
 		for {
 			header, err := tarReader.Next()
 			if err == io.EOF {
@@ -55,6 +49,7 @@ func ExtractSingleFile(img v1.Image, fpath string) (*bytes.Buffer, error) {
 				}
 			}
 		}
+		rc.Close()
 	}
 	return nil, errors.New("not found single file")
 }
